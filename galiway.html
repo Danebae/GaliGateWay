@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galican Gateway</title>
+    <style>
+        div {
+            border-bottom: 1px solid black;
+            padding: 10px 10px 30px 10px;
+        }
+
+        button,
+        input,
+        label {
+            display: inline-block;
+            margin: 5px;
+        }
+
+        label {
+            width: 200px;
+        }
+
+        input {
+            width: 300px;
+        }
+
+        button {
+            width: 100px;
+        }
+
+        [id$="Status"] {
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <label>Timer local IP:</label><input id="timerIP" /><br>
+        <label id="timerStatus">Timer Disconnected</label><button id="timerButton" onclick="connectTimer()">Connect</button><br>
+    </div><br>
+    <div>
+        <label>Remote Server IP:</label><input id="serverIP" /><br>
+        <label id="serverStatus">Server Disconnected</label><button id="serverButton" onclick="connectServer()">Connect</button><br>
+    </div>
+
+    <script>
+        var timerIP = document.getElementById("timerIP");
+        var timerStatus = document.getElementById("timerStatus");
+        var timerButton = document.getElementById("timerButton");
+        var timerFlag = false;
+
+        var serverIP = document.getElementById("serverIP");
+        var serverStatus = document.getElementById("serverStatus");
+        var serverButton = document.getElementById("serverButton");
+        var serverFlag = false;
+
+
+        var timerConn;
+        var serverConn;
+
+        function connectTimer() {
+
+            if (timerFlag) {
+                timerConn.close();
+            } else {
+                console.log('ws://' + timerIP.value + '/timerws');
+                timerConn = new WebSocket('ws://' + timerIP.value + '/timerws');
+
+                timerConn.onopen = () => {
+                    console.log("Timer connected");                    
+                    timerStatus.innerHTML = "Connected";
+                    timerStatus.style.color = "green";
+                    timerButton.innerHTML = "Disconnect";
+                    timerFlag = true;
+                }
+
+                timerConn.onmessage = (message) => {
+                    console.log(`From Timer:\n${message.data}\n`);
+                    if (serverFlag) {
+                        serverConn.send(message.data);
+                    }
+                }
+
+                timerConn.onclose = () => {
+                    console.log("Timer disconnected");
+                    timerStatus.innerHTML = "Disconnected";
+                    timerStatus.style.color = "red";
+                    timerButton.innerHTML = "Connect";
+                    timerFlag = false;
+                }
+            }
+        }
+
+
+        function connectServer() {
+
+            if (serverFlag) {
+                serverConn.close();
+            } else {
+                serverConn = new WebSocket('ws://' + serverIP.value + '/'); // change to wss at convenience
+
+                serverConn.onopen = () => {
+                    console.log("Server connected");
+                    serverStatus.innerHTML = "Connected";
+                    serverStatus.style.color = "green";
+                    serverButton.innerHTML = "Disconnect";
+                    serverFlag = true;
+                }
+
+                serverConn.onmessage = (message) => {
+                    console.log(`From Server:\n${message.data}\n`);
+                    if (timerFlag) {
+                        timerConn.send(message.data);
+                    }
+                }
+
+                serverConn.onclose = () => {
+                    console.log("Server disconnected");
+                    serverStatus.innerHTML = "Disonnected";
+                    serverStatus.style.color = "red";
+                    serverButton.innerHTML = "Connect";
+                    serverFlag = false;
+                }
+            }
+        }
+    </script>
+
+</body>
+
+</html>
