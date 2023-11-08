@@ -1,9 +1,11 @@
 # Galican Timer V2 Gateway
+HTML to receive and send all websocket telegrams between Galican Timer websocket server and external websocket server.
 
 ## HTML standalone
 HTML is standalone with no external dependencies. Run on your browser and configure both timer and server IPs.
 
 ## Preparing for emulation
+You can emulate timer and external websocket server.
 Run "npm i" to instal module dependencies if you want to run timer or server emulator. 
 
 ## Emulation
